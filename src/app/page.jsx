@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { getCurrentLanguage } from '@/lib/i18n/utils';
+import { Logo } from '@/components/Logo';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -105,9 +106,12 @@ export default function Home() {
   return (
     <main className="container mx-auto px-4 py-8 max-w-6xl">
       <LanguageSwitcher />
-      <h1 className="text-4xl font-bold text-center mb-8 text-primary animate-fade-in">
-        {t('app.title')}
-      </h1>
+      <div className="flex flex-col items-center mb-8">
+        <Logo size="md" />
+        <h1 className="text-4xl font-bold text-center mt-4 text-primary animate-fade-in">
+          {t('app.title')}
+        </h1>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 animate-slide-up">
         <div>

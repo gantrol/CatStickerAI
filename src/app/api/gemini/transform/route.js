@@ -2,6 +2,10 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+import { setGlobalDispatcher, ProxyAgent } from "undici";
+const dispatcher = new ProxyAgent({ uri: new URL('http://127.0.0.1:7890').toString() });
+setGlobalDispatcher(dispatcher);
+
 export async function POST(request) {
   // try {
     const formData = await request.formData();
