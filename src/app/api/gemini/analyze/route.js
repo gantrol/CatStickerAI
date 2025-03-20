@@ -21,7 +21,19 @@ export async function POST(request) {
   try {
     const { originalImage, curtainImage, apiKey: providedApiKey, language = "en" } = await request.json();
     const apiKey = providedApiKey || process.env.GEMINI_API_KEY;
+    if (!originalImage) {
+      return NextResponse.json({ 
+        error: 'Missing original image', 
+        details: 'Original image is required for analysis' 
+      }, { status: 400 });
+    }
     
+    if (!curtainImage) {
+      return NextResponse.json({ 
+        error: 'Missing curtain image', 
+        details: 'Protected image is required for analysis' 
+      }, { status: 400 });
+    }
     console.log("Original Image(B):", originalImage.length); // Debug log
     
     // Extract base64 data from the curtain image URL if it's in data URL format

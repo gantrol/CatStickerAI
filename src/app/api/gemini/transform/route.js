@@ -121,7 +121,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       image: imageData ? `data:${mimeType};base64,${imageData}` : null,
-      description: textResponse,
+      description: textResponse || "模型未能生成图片，但没有提供具体原因。"
     });
   // } catch (error) {
   //   console.error("Error generating image:", error);

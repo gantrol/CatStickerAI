@@ -22,31 +22,33 @@ export default function Home() {
   const [analysis, setAnalysis] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [llmMessage, setLlmMessage] = useState('');
+  const [noImageGenerated, setNoImageGenerated] = useState(false);
+
   // 添加引用用于自动滚动
   const resultsRef = useRef(null);
-  
+
   // 图片加载完成后自动滚动到结果区域
   useEffect(() => {
     if (protectedImage && resultsRef.current) {
-      resultsRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
+      resultsRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
       });
     }
   }, [protectedImage]);
-  
+
   const handleSubmit = async () => {
     if (!file) return;
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Convert file to base64
       const bytes = await file.arrayBuffer();
       const base64Image = Buffer.from(bytes).toString('base64');
       setOriginalImage(`data:${file.type};base64,${base64Image}`);
-      
+
       // Prepare form data for transformation API
       const formData = new FormData();
       formData.append('image', file);
@@ -59,20 +61,33 @@ export default function Home() {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!transformResponse.ok) {
         const errorData = await transformResponse.json();
         throw new Error(errorData.error || 'Transformation failed');
       }
-      
+
       const transformData = await transformResponse.json();
+
+      // 保存LLM返回的文字信息
+      if (transformData.description) {
+        setLlmMessage(transformData.description);
+      }
+
+      // 检查是否返回了图片
+      if (!transformData.image) {
+        setNoImageGenerated(true);
+        setIsLoading(false);
+        return; // 没有生成图片，不调用分析API
+      }
+
       setProtectImage(transformData.image);
-      
+
       let curtainBase64 = null;
       if (transformData.image && transformData.image.startsWith('data:')) {
         curtainBase64 = transformData.image.split(',')[1];
       }
-      
+
       const analyzeResponse = await fetch('/api/gemini/analyze', {
         method: 'POST',
         headers: {
@@ -94,7 +109,7 @@ export default function Home() {
       const analyzeData = await analyzeResponse.json();
       setRating(analyzeData.rating);
       setAnalysis(analyzeData.analysis);
-      
+
     } catch (err) {
       console.error('Error:', err);
       setError(err.message || 'Error processing image');
@@ -112,26 +127,26 @@ export default function Home() {
           {t('app.title')}
         </h1>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 animate-slide-up">
         <div>
           <h2 className="text-xl font-semibold mb-4">{t('upload.title')}</h2>
           <FileUpload onFileChange={setFile} />
         </div>
-        
+
         <div>
           <h2 className="text-xl font-semibold mb-4">{t('api.title')}</h2>
-          <ApiKeyInput 
-            apiKey={apiKey} 
+          <ApiKeyInput
+            apiKey={apiKey}
             setApiKey={setApiKey}
             useDefaultKey={useDefaultKey}
             setUseDefaultKey={setUseDefaultKey}
           />
         </div>
       </div>
-      
+
       <div className="flex justify-center mb-12">
-        <Button 
+        <Button
           size="lg"
           onClick={handleSubmit}
           disabled={!file || isLoading}
@@ -157,7 +172,7 @@ export default function Home() {
           )}
         </Button>
       </div>
-      
+
       {isLoading && (
         <div className="flex flex-col items-center py-12 animate-fade-in">
           <div className="relative">
@@ -170,8 +185,8 @@ export default function Home() {
           <p className="text-muted-foreground text-sm mt-2">{t('loading.wait')}</p>
         </div>
       )}
-      
-      {error && (
+
+      {!(noImageGenerated && llmMessage) && error && (
         <div className="text-red-500 text-center mb-8 p-6 bg-red-50 rounded-lg border border-red-200 animate-fade-in">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto mb-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -180,17 +195,45 @@ export default function Home() {
           <p className="mt-1">{error}</p>
         </div>
       )}
-      
+      {noImageGenerated && llmMessage && (
+        <div className="mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg animate-fade-in">
+          <div className="flex items-start">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-400 mr-3 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="font-medium text-lg mb-2">{t('noImage.title')}</h3>
+              <p className="text-muted-foreground whitespace-pre-wrap">{llmMessage}</p>
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setTimeout(() => {
+                      setNoImageGenerated(false);
+                      setLlmMessage('');
+                    }, 500);
+                  }}
+                >
+                  {t('noImage.tryAgain')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {protectedImage && (
         <div ref={resultsRef} className="animate-fade-in">
-          <ComparisonDisplay 
-            originalImage={originalImage} 
-            protectedImage={protectedImage} 
+          <ComparisonDisplay
+            originalImage={originalImage}
+            protectedImage={protectedImage}
           />
-          
-          <SimilarityRating 
-            rating={rating} 
-            analysis={analysis} 
+
+          <SimilarityRating
+            rating={rating}
+            analysis={analysis}
           />
         </div>
       )}

@@ -115,4 +115,16 @@ export const translations = {
     zh: '完美保护',
     en: 'Perfect protection',
   },
+  'noImage.title': {
+    zh: '无需添加猫咪贴纸',
+    en: 'No Cat Stickers Needed',
+  },
+  'noImage.tryAgain': {
+    zh: '尝试另一张图片',
+    en: 'Try Another Image',
+  },
+  'noImage.message': {
+    zh: '模型认为这张图片不需要遮盖处理',
+    en: 'The model determined this image doesn\'t need protection',
+  },
 };
