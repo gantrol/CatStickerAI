@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: '猫猫贴纸：自动遮挡隐私',
-  description: '利用AI，用猫咪贴纸挡住你的隐私',
+  description: '猫咪利用AI，用贴纸挡住你的隐私',
   icons: {
     icon: [
       { url: '/logo.png', sizes: '32x32' },

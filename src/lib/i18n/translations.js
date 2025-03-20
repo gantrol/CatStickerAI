@@ -1,7 +1,7 @@
 export const translations = {
   'app.title': {
-    zh: '猫猫贴纸：自动遮挡隐私',
-    en: 'Cat Stickers: Automatic Privacy Protection',
+    zh: '猫猫贴纸：帮你遮挡隐私',
+    en: 'Cat Stickers: AI Privacy Protection',
   },
   'upload.title': {
     zh: '上传需要保护的图片',
